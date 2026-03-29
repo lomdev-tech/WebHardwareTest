@@ -71,12 +71,18 @@
    - 检查依赖是否安装正确：`npm install`
    - 检查代码是否有语法错误
 
-2. **部署失败**
+2. **部署失败 - 权限错误**
+   - 错误信息：`sh: line 1: /vercel/path0/node_modules/.bin/vite: Permission denied`
+   - 解决方案：
+     - 项目已修改 `package.json` 中的构建脚本，使用 `npx vite build` 来避免权限问题
+     - 确保 Vercel 配置正确，构建命令设置为 `npm run build`
+
+3. **部署失败 - 其他原因**
    - 检查 Vercel 配置是否正确
    - 检查项目结构是否符合 Vercel 要求
    - 查看 Vercel 部署日志获取详细错误信息
 
-3. **应用无法访问**
+4. **应用无法访问**
    - 检查 Vercel 部署状态
    - 检查网络连接
    - 清除浏览器缓存
