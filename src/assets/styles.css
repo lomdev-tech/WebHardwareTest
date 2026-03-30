@@ -17,7 +17,7 @@
 @layer components {
   /* 玻璃态卡片 */
   .glass-card {
-    @apply bg-dark-800/80 backdrop-blur-xl border border-dark-700/50 rounded-2xl;
+    @apply bg-dark-800/95 border border-dark-700/50 rounded-2xl;
     box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.3),
       0 2px 4px -1px rgba(0, 0, 0, 0.2),
@@ -141,5 +141,21 @@
   
   .border-glow {
     box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+  }
+  
+  /* 优化滚动性能 */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+  
+  /* 硬件加速 */
+  .hw-accel {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* 减少重绘 */
+  .reduce-repaint {
+    contain: layout style paint;
   }
 }

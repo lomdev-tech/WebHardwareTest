@@ -24,38 +24,12 @@
 
     <div class="test-sections">
       <div class="test-section">
-        <h3>颜色测试</h3>
-        <div class="color-test">
-          <div class="color-squares">
-            <div class="color-square" style="background-color: #ff0000;" @click="setFullScreenColor('#ff0000')"></div>
-            <div class="color-square" style="background-color: #00ff00;" @click="setFullScreenColor('#00ff00')"></div>
-            <div class="color-square" style="background-color: #0000ff;" @click="setFullScreenColor('#0000ff')"></div>
-            <div class="color-square" style="background-color: #ffff00;" @click="setFullScreenColor('#ffff00')"></div>
-            <div class="color-square" style="background-color: #ff00ff;" @click="setFullScreenColor('#ff00ff')"></div>
-            <div class="color-square" style="background-color: #00ffff;" @click="setFullScreenColor('#00ffff')"></div>
-            <div class="color-square" style="background-color: #000000;" @click="setFullScreenColor('#000000')"></div>
-            <div class="color-square" style="background-color: #ffffff;" @click="setFullScreenColor('#ffffff')"></div>
-          </div>
-          <p class="test-description">点击颜色方块进入全屏测试模式，按 ESC 或右键退出，滚轮/左右键/左键单击切换颜色</p>
-        </div>
-      </div>
-
-      <div class="test-section">
         <h3>坏点检测</h3>
         <div class="dead-pixel-test">
-          <el-button type="primary" @click="startDeadPixelTest">开始坏点检测</el-button>
+          <button @click="startDeadPixelTest" class="px-6 py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-lg font-medium transition-all duration-300 shadow-lg shadow-primary-500/30">
+            开始坏点检测
+          </button>
           <p class="test-description">进入全屏模式后，仔细观察屏幕上是否有异常亮点或暗点</p>
-        </div>
-      </div>
-
-      <div class="test-section">
-        <h3>响应测试</h3>
-        <div class="response-test">
-          <div class="response-box" @click="recordClickTime">
-            <span v-if="!clickTime">点击此处</span>
-            <span v-else>响应时间: {{ clickTime }}ms</span>
-          </div>
-          <p class="test-description">测试屏幕响应速度</p>
         </div>
       </div>
     </div>
@@ -74,31 +48,15 @@ const screenSize = ref(0)
 const colorDepth = ref(window.screen.colorDepth)
 const refreshRate = ref(Math.round(window.screen.refreshRate || 60))
 const fullScreenColor = ref(null)
-const clickTime = ref(null)
-const clickStartTime = ref(0)
-
-// 颜色测试数组
-const colorList = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#000000', '#ffffff']
 const currentColorIndex = ref(0)
+
+// 坏点检测颜色数组
+const colorList = ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff']
 
 // 计算屏幕尺寸（英寸）
 const calculateScreenSize = () => {
   const diagonal = Math.sqrt(Math.pow(screenWidth.value, 2) + Math.pow(screenHeight.value, 2))
   screenSize.value = diagonal / 96 // 96 DPI 是标准值
-}
-
-const setFullScreenColor = (color) => {
-  fullScreenColor.value = color
-  currentColorIndex.value = colorList.indexOf(color)
-  // 尝试进入全屏模式
-  const elem = document.documentElement
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen()
-  } else if (elem.webkitRequestFullscreen) {
-    elem.webkitRequestFullscreen()
-  } else if (elem.msRequestFullscreen) {
-    elem.msRequestFullscreen()
-  }
 }
 
 const exitFullScreenColor = () => {
@@ -114,11 +72,7 @@ const exitFullScreenColor = () => {
 }
 
 const startDeadPixelTest = () => {
-  // 循环显示不同颜色
-  const colors = ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff']
-  let index = 0
-  
-  fullScreenColor.value = colors[index]
+  currentColorIndex.value = 0
   
   // 尝试进入全屏模式
   const elem = document.documentElement
@@ -130,32 +84,12 @@ const startDeadPixelTest = () => {
     elem.msRequestFullscreen()
   }
   
-  // 每3秒切换一次颜色
-  const interval = setInterval(() => {
-    index = (index + 1) % colors.length
-    fullScreenColor.value = colors[index]
-  }, 3000)
-  
-  // 点击退出
-  setTimeout(() => {
-    clearInterval(interval)
-  }, 15000) // 15秒后自动停止
-}
-
-const recordClickTime = () => {
-  if (!clickStartTime.value) {
-    clickStartTime.value = Date.now()
-    clickTime.value = null
-  } else {
-    clickTime.value = Date.now() - clickStartTime.value
-    clickStartTime.value = 0
-  }
+  // 显示第一个颜色
+  fullScreenColor.value = colorList[currentColorIndex.value]
 }
 
 const reset = () => {
   fullScreenColor.value = null
-  clickTime.value = null
-  clickStartTime.value = 0
 }
 
 // 监听键盘事件
@@ -168,7 +102,12 @@ const handleKeyDown = (event) => {
     // 右键 - 下一个颜色
     event.preventDefault()
     currentColorIndex.value = (currentColorIndex.value + 1) % colorList.length
-    fullScreenColor.value = colorList[currentColorIndex.value]
+    if (currentColorIndex.value === 0) {
+      // 完成一轮测试后退出
+      exitFullScreenColor()
+    } else {
+      fullScreenColor.value = colorList[currentColorIndex.value]
+    }
   } else if (event.key === 'ArrowLeft') {
     // 左键 - 上一个颜色
     event.preventDefault()
@@ -186,12 +125,17 @@ const handleWheel = (event) => {
   if (event.deltaY > 0) {
     // 向下滚动 - 下一个颜色
     currentColorIndex.value = (currentColorIndex.value + 1) % colorList.length
+    if (currentColorIndex.value === 0) {
+      // 完成一轮测试后退出
+      exitFullScreenColor()
+    } else {
+      fullScreenColor.value = colorList[currentColorIndex.value]
+    }
   } else {
     // 向上滚动 - 上一个颜色
     currentColorIndex.value = (currentColorIndex.value - 1 + colorList.length) % colorList.length
+    fullScreenColor.value = colorList[currentColorIndex.value]
   }
-  
-  fullScreenColor.value = colorList[currentColorIndex.value]
 }
 
 // 处理全屏点击事件 - 鼠标左键单击切换颜色
@@ -200,7 +144,12 @@ const handleFullScreenClick = (event) => {
   
   // 左键单击切换到下一个颜色
   currentColorIndex.value = (currentColorIndex.value + 1) % colorList.length
-  fullScreenColor.value = colorList[currentColorIndex.value]
+  if (currentColorIndex.value === 0) {
+    // 完成一轮测试后退出
+    exitFullScreenColor()
+  } else {
+    fullScreenColor.value = colorList[currentColorIndex.value]
+  }
 }
 
 onMounted(() => {
@@ -229,26 +178,17 @@ defineExpose({
 }
 
 .screen-info {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  margin-bottom: 32px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
-}
-
-.screen-info:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  @apply glass-card p-6 mb-8 hw-accel;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .screen-info h3 {
   margin-top: 0;
   margin-bottom: 24px;
-  color: #303133;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 600;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 16px;
 }
 
@@ -259,29 +199,21 @@ defineExpose({
 }
 
 .info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
+  @apply flex justify-between items-center p-4 rounded-lg border border-dark-600 bg-dark-700/50 transition-all duration-300 hw-accel;
 }
 
 .info-item:hover {
-  background-color: #ecf5ff;
-  border-color: #d9ecff;
+  @apply border-primary-500/50 bg-dark-700/80;
 }
 
 .info-label {
-  color: #606266;
+  color: #a1a1aa;
   font-weight: 500;
   font-size: 14px;
 }
 
 .info-value {
-  color: #303133;
+  color: #ffffff;
   font-weight: 600;
   font-size: 14px;
 }
@@ -293,123 +225,38 @@ defineExpose({
 }
 
 .test-section {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
+  @apply glass-card p-6 border border-dark-700/50 transition-all duration-300 hw-accel;
 }
 
 .test-section:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  @apply border-primary-500/30;
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1);
 }
 
 .test-section h3 {
   margin-top: 0;
   margin-bottom: 24px;
-  color: #303133;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 600;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 16px;
-}
-
-.color-test {
-  text-align: center;
-}
-
-.color-squares {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.color-square {
-  width: 100%;
-  height: 85px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid #e4e7ed;
-  position: relative;
-  overflow: hidden;
-}
-
-.color-square:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  border-color: transparent;
-}
-
-.color-square::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 50%);
-  transition: all 0.3s ease;
 }
 
 .dead-pixel-test {
   text-align: center;
 }
 
-.dead-pixel-test .el-button {
+.dead-pixel-test button {
   margin-bottom: 16px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.response-test {
-  text-align: center;
-}
-
-.response-box {
-  width: 220px;
-  height: 220px;
-  background-color: #f8f9fa;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid #e4e7ed;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  position: relative;
-  overflow: hidden;
-}
-
-.response-box:hover {
-  background-color: #ecf5ff;
-  border-color: #409eff;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(64, 158, 255, 0.2);
-}
-
-.response-box span {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  position: relative;
-  z-index: 1;
 }
 
 .test-description {
-  color: #606266;
+  color: #a1a1aa;
   font-size: 14px;
   margin-top: 16px;
   line-height: 1.5;
-  background-color: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  @apply p-4 rounded-lg border border-dark-600 bg-dark-700/50;
 }
 
 .full-screen-color {
@@ -427,7 +274,7 @@ defineExpose({
 }
 
 .full-screen-color::after {
-  content: '点击切换颜色 | ESC 退出';
+  content: '点击切换颜色 | 测试完成后自动退出 | ESC 退出';
   position: absolute;
   bottom: 30px;
   left: 50%;
@@ -452,17 +299,17 @@ defineExpose({
 }
 
 .screen-test::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1e293b;
   border-radius: 3px;
 }
 
 .screen-test::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #475569;
   border-radius: 3px;
 }
 
 .screen-test::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #64748b;
 }
 
 @media (max-width: 768px) {
@@ -476,15 +323,6 @@ defineExpose({
   
   .test-sections {
     grid-template-columns: 1fr;
-  }
-  
-  .color-squares {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .response-box {
-    width: 180px;
-    height: 180px;
   }
 }
 </style>

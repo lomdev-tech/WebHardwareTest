@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <aside 
       :class="[
-        'relative flex flex-col bg-dark-800/90 backdrop-blur-xl border-r border-dark-700/50 transition-all duration-300',
+        'relative flex flex-col bg-dark-800/90 border-r border-dark-700/50 transition-all duration-300',
         isCollapse ? 'w-20' : 'w-64'
       ]"
     >
@@ -59,7 +59,7 @@
     <!-- 主内容区 -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- 顶部标题栏 -->
-      <header class="flex items-center justify-between h-20 px-8 border-b border-dark-700/50 bg-dark-800/50 backdrop-blur-sm">
+      <header class="flex items-center justify-between h-20 px-8 border-b border-dark-700/50 bg-dark-800/50">
         <div class="flex items-center gap-4">
           <h1 class="text-2xl font-bold text-white">
             {{ currentMenuItem?.label }}
@@ -79,11 +79,18 @@
       <!-- 内容区域 -->
       <div class="flex-1 overflow-y-auto p-8">
         <div class="glass-card min-h-full p-8">
-          <KeyboardTest v-if="activeMenu === 'keyboard'" ref="keyboardTest" />
-          <MouseTest v-else-if="activeMenu === 'mouse'" ref="mouseTest" />
-          <ScreenTest v-else-if="activeMenu === 'screen'" ref="screenTest" />
-          <MicTest v-else-if="activeMenu === 'mic'" ref="micTest" />
-          <CameraTest v-else-if="activeMenu === 'camera'" ref="cameraTest" />
+          <!-- 动态组件 -->
+          <component :is="currentComponent" ref="currentComponentRef" v-if="currentComponent" />
+          <div v-else class="flex items-center justify-center h-full text-dark-500">
+            <div class="text-center">
+              <div class="w-16 h-16 rounded-full bg-dark-700/50 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                </svg>
+              </div>
+              <p>加载中...</p>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -101,21 +108,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import KeyboardTest from './components/KeyboardTest.vue'
-import MouseTest from './components/MouseTest.vue'
-import ScreenTest from './components/ScreenTest.vue'
-import MicTest from './components/MicTest.vue'
-import CameraTest from './components/CameraTest.vue'
+import { ref, computed, watch, nextTick } from 'vue'
 
 const activeMenu = ref('keyboard')
 const isCollapse = ref(false)
-
-const keyboardTest = ref(null)
-const mouseTest = ref(null)
-const screenTest = ref(null)
-const micTest = ref(null)
-const cameraTest = ref(null)
+const currentComponent = ref(null)
+const currentComponentRef = ref(null)
+const loadedComponents = ref({})
 
 const menuItems = [
   { 
@@ -147,21 +146,58 @@ const menuItems = [
 
 const currentMenuItem = computed(() => menuItems.find(item => item.key === activeMenu.value))
 
+// 动态加载组件
+const loadComponent = async (menuKey) => {
+  if (loadedComponents.value[menuKey]) {
+    currentComponent.value = loadedComponents.value[menuKey]
+    return
+  }
+
+  try {
+    let component
+    switch (menuKey) {
+      case 'keyboard':
+        component = (await import('./components/KeyboardTest.vue')).default
+        break
+      case 'mouse':
+        component = (await import('./components/MouseTest.vue')).default
+        break
+      case 'screen':
+        component = (await import('./components/ScreenTest.vue')).default
+        break
+      case 'mic':
+        component = (await import('./components/MicTest.vue')).default
+        break
+      case 'camera':
+        component = (await import('./components/CameraTest.vue')).default
+        break
+      default:
+        component = null
+    }
+    if (component) {
+      loadedComponents.value[menuKey] = component
+      currentComponent.value = component
+      // 等待组件挂载
+      await nextTick()
+    }
+  } catch (error) {
+    console.error('Failed to load component:', error)
+    currentComponent.value = null
+  }
+}
+
+// 监听菜单变化
+watch(activeMenu, (newMenu) => {
+  loadComponent(newMenu)
+}, { immediate: true })
+
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
 }
 
 const resetTest = () => {
-  if (activeMenu.value === 'keyboard' && keyboardTest.value) {
-    keyboardTest.value.reset()
-  } else if (activeMenu.value === 'mouse' && mouseTest.value) {
-    mouseTest.value.reset()
-  } else if (activeMenu.value === 'screen' && screenTest.value) {
-    screenTest.value.reset()
-  } else if (activeMenu.value === 'mic' && micTest.value) {
-    micTest.value.reset()
-  } else if (activeMenu.value === 'camera' && cameraTest.value) {
-    cameraTest.value.reset()
+  if (currentComponentRef.value && currentComponentRef.value.reset) {
+    currentComponentRef.value.reset()
   }
 }
 </script>

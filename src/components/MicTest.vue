@@ -12,8 +12,12 @@
           </div>
         </div>
         <div class="mic-controls">
-          <el-button type="primary" @click="startTest" :disabled="isRecording">开始测试</el-button>
-          <el-button type="danger" @click="stopTest" :disabled="!isRecording">停止测试</el-button>
+          <button @click="startTest" :disabled="isRecording" class="flex-1 px-6 py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-lg font-medium transition-all duration-300 shadow-lg shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
+            开始测试
+          </button>
+          <button @click="stopTest" :disabled="!isRecording" class="flex-1 px-6 py-3 bg-red-500 hover:bg-red-400 text-white rounded-lg font-medium transition-all duration-300 shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
+            停止测试
+          </button>
         </div>
       </div>
     </div>
@@ -198,78 +202,66 @@ defineExpose({
 }
 
 .test-section {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  margin-bottom: 24px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
+  @apply glass-card p-6 mb-6 border border-dark-700/50 transition-all duration-300 hw-accel;
 }
 
 .test-section:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  @apply border-primary-500/30;
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1);
 }
 
 .test-section h3 {
   margin-top: 0;
   margin-bottom: 24px;
-  color: #303133;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 600;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 16px;
 }
 
 .mic-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding: 24px;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
+  @apply flex flex-col items-center gap-6 p-6 rounded-xl border border-dark-600 bg-dark-700/50;
 }
 
 .mic-icon {
   width: 140px;
   height: 140px;
-  background-color: #ffffff;
+  background-color: #1e293b;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 3px solid #e4e7ed;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 3px solid #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .mic-icon.active {
-  border-color: #409eff;
-  background-color: #ecf5ff;
-  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.2);
+  border-color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.1);
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
 }
 
 .mic-icon.recording {
-  border-color: #67c23a;
-  background-color: #f0f9eb;
-  box-shadow: 0 4px 16px rgba(103, 194, 58, 0.2);
+  border-color: #4ade80;
+  background-color: rgba(74, 222, 128, 0.1);
+  box-shadow: 0 4px 16px rgba(74, 222, 128, 0.3);
   animation: pulse 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(103, 194, 58, 0.4);
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4);
     transform: scale(1);
   }
   70% {
-    box-shadow: 0 0 0 20px rgba(103, 194, 58, 0);
+    box-shadow: 0 0 0 20px rgba(74, 222, 128, 0);
     transform: scale(1.05);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(103, 194, 58, 0);
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
     transform: scale(1);
   }
 }
@@ -277,16 +269,16 @@ defineExpose({
 .mic-svg {
   width: 65px;
   height: 65px;
-  fill: #606266;
+  fill: #a1a1aa;
   transition: fill 0.3s ease;
 }
 
 .mic-icon.active .mic-svg {
-  fill: #409eff;
+  fill: #38bdf8;
 }
 
 .mic-icon.recording .mic-svg {
-  fill: #67c23a;
+  fill: #4ade80;
   animation: micBounce 0.8s infinite alternate ease-in-out;
 }
 
@@ -311,10 +303,10 @@ defineExpose({
 .mic-wave span {
   width: 4px;
   height: 18px;
-  background-color: #409eff;
+  background-color: #38bdf8;
   border-radius: 2px;
   animation: wave 1s infinite ease-in-out;
-  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(56, 189, 248, 0.3);
 }
 
 @keyframes wave {
@@ -335,18 +327,9 @@ defineExpose({
   max-width: 300px;
 }
 
-.mic-controls .el-button {
-  flex: 1;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.mic-controls .el-button:hover {
+.mic-controls button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .test-results {
@@ -356,49 +339,38 @@ defineExpose({
 }
 
 .result-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
+  @apply flex justify-between items-center p-4 rounded-lg border border-dark-600 bg-dark-700/50 transition-all duration-300;
 }
 
 .result-item:hover {
-  background-color: #ecf5ff;
-  border-color: #d9ecff;
+  @apply border-primary-500/50 bg-dark-700/80;
 }
 
 .result-label {
-  color: #606266;
+  color: #a1a1aa;
   font-weight: 500;
   font-size: 14px;
 }
 
 .result-value {
-  color: #303133;
+  color: #ffffff;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.3s ease;
 }
 
 .result-value.active {
-  color: #67c23a;
+  color: #4ade80;
   font-weight: 700;
   transform: scale(1.05);
 }
 
 .result-value.inactive {
-  color: #f56c6c;
+  color: #f87171;
 }
 
 .audio-waveform {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 24px;
-  border: 1px solid #e9ecef;
+  @apply p-6 rounded-lg border border-dark-600 bg-dark-700/50;
 }
 
 .waveform-container {
@@ -412,20 +384,17 @@ defineExpose({
 
 .waveform-bar {
   width: 6px;
-  background-color: #409eff;
+  background-color: #38bdf8;
   border-radius: 3px;
   transition: height 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(56, 189, 248, 0.3);
 }
 
 .instructions {
-  color: #606266;
+  color: #a1a1aa;
   font-size: 14px;
   line-height: 1.6;
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  @apply p-5 rounded-lg border border-dark-600 bg-dark-700/50;
 }
 
 .instructions p {
@@ -441,7 +410,7 @@ defineExpose({
   top: 8px;
   width: 6px;
   height: 6px;
-  background-color: #409eff;
+  background-color: #38bdf8;
   border-radius: 50%;
 }
 
@@ -451,17 +420,17 @@ defineExpose({
 }
 
 .mic-test::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1e293b;
   border-radius: 3px;
 }
 
 .mic-test::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #475569;
   border-radius: 3px;
 }
 
 .mic-test::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #64748b;
 }
 
 @media (max-width: 768px) {
@@ -479,7 +448,7 @@ defineExpose({
     max-width: none;
   }
   
-  .mic-controls .el-button {
+  .mic-controls button {
     width: 100%;
   }
   

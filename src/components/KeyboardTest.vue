@@ -2,10 +2,10 @@
   <div class="flex flex-col items-center gap-8 p-8 w-full">
     <!-- 统计信息 -->
     <div class="flex gap-6 w-full max-w-6xl">
-      <div class="data-card flex-1 flex items-center justify-between">
+      <div class="data-card flex-1 flex items-center justify-between hw-accel">
         <div>
           <p class="text-dark-500 text-sm mb-1">已测试按键</p>
-          <p class="text-3xl font-bold text-gradient">{{ testedKeys.length }}</p>
+          <p class="text-3xl font-bold text-gradient">{{ testedKeys.size }}</p>
         </div>
         <div class="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center">
           <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,10 +13,10 @@
           </svg>
         </div>
       </div>
-      <div class="data-card flex-1 flex items-center justify-between">
+      <div class="data-card flex-1 flex items-center justify-between hw-accel">
         <div>
           <p class="text-dark-500 text-sm mb-1">当前按下</p>
-          <p class="text-3xl font-bold text-white">{{ pressedKeys.length }}</p>
+          <p class="text-3xl font-bold text-white">{{ pressedKeys.size }}</p>
         </div>
         <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
           <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,10 +24,10 @@
           </svg>
         </div>
       </div>
-      <div class="data-card flex-1 flex items-center justify-between">
+      <div class="data-card flex-1 flex items-center justify-between hw-accel">
         <div>
           <p class="text-dark-500 text-sm mb-1">测试进度</p>
-          <p class="text-3xl font-bold text-primary-300">{{ Math.round((testedKeys.length / 104) * 100) }}%</p>
+          <p class="text-3xl font-bold text-primary-300">{{ Math.round((testedKeys.size / 104) * 100) }}%</p>
         </div>
         <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
           <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@
     </div>
 
     <!-- 键盘 -->
-    <div class="glass-card p-6 w-full max-w-6xl overflow-x-auto">
+    <div class="glass-card p-6 w-full max-w-6xl overflow-x-auto hw-accel">
       <div class="flex flex-col gap-2 min-w-max">
         <!-- 第一行 -->
         <div class="flex gap-1.5">
@@ -184,7 +184,7 @@
     </div>
 
     <!-- 说明 -->
-    <div class="glass-card p-6 w-full max-w-2xl text-center">
+    <div class="glass-card p-6 w-full max-w-2xl text-center hw-accel">
       <p class="text-dark-500 mb-2">按下键盘上的任意键，对应的虚拟键位会高亮显示</p>
       <p class="text-primary-400">已测试的键位会保持蓝色高亮状态</p>
     </div>
@@ -192,17 +192,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, shallowRef } from 'vue'
 
-const pressedKeys = ref([])
-const testedKeys = ref([])
+// 使用 Set 存储按键状态，查找时间 O(1)
+const pressedKeys = ref(new Set())
+const testedKeys = ref(new Set())
 
+// 优化 getKeyClass 函数，减少重复计算
 const getKeyClass = (keyCode) => {
   const classes = []
-  if (pressedKeys.value.includes(keyCode)) {
+  if (pressedKeys.value.has(keyCode)) {
     classes.push('active')
   }
-  if (testedKeys.value.includes(keyCode)) {
+  if (testedKeys.value.has(keyCode)) {
     classes.push('tested')
   }
   return classes.join(' ')
@@ -211,26 +213,25 @@ const getKeyClass = (keyCode) => {
 const handleKeyDown = (event) => {
   event.preventDefault()
   const key = event.code
-  if (!pressedKeys.value.includes(key)) {
-    pressedKeys.value.push(key)
+  if (!pressedKeys.value.has(key)) {
+    pressedKeys.value.add(key)
   }
-  if (!testedKeys.value.includes(key)) {
-    testedKeys.value.push(key)
+  if (!testedKeys.value.has(key)) {
+    testedKeys.value.add(key)
   }
 }
 
 const handleKeyUp = (event) => {
   event.preventDefault()
   const key = event.code
-  const index = pressedKeys.value.indexOf(key)
-  if (index > -1) {
-    pressedKeys.value.splice(index, 1)
+  if (pressedKeys.value.has(key)) {
+    pressedKeys.value.delete(key)
   }
 }
 
 const reset = () => {
-  pressedKeys.value = []
-  testedKeys.value = []
+  pressedKeys.value.clear()
+  testedKeys.value.clear()
 }
 
 onMounted(() => {
