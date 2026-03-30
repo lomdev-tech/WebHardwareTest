@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node --loader=vite/dist/node/cli.js build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
